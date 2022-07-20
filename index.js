@@ -1,8 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { readContentFile } = require('./helpers/readWriteFile');
+const { readContentFile, writeContentFile } = require('./helpers/readWriteFile');
 const { generateToken } = require('./helpers/tokenGenerator');
-const { loginValidation } = require('./middlewares/validations');
+const {
+  loginValidation,
+  tokenValidation,
+  nameValidation,
+  ageValidation,
+  talkValidation,
+  watchedAtValidation,
+  rateValidation,
+} = require('./middlewares/validations');
 
 const app = express();
 app.use(bodyParser.json());
@@ -39,6 +47,31 @@ app.get('/talker/:id', async (req, res) => {
 app.post('/login', loginValidation, (_req, res) => {
   const token = generateToken(16);
   res.status(HTTP_OK_STATUS).json({ token });
+});
+
+app.post('/talker',
+  tokenValidation,
+  nameValidation,
+  ageValidation,
+  talkValidation,
+  watchedAtValidation,
+  rateValidation,
+  async (req, res) => {
+  const { name, age, talk: { watchedAt, rate } } = req.body;
+  const talkers = await readContentFile(talkersDbFile);
+  const newTalker = {
+    name,
+    age,
+    id: talkers.length + 1,
+    talk: {
+      watchedAt,
+      rate,
+    },
+  };
+  // talkers.push(newTalker);
+  await writeContentFile(talkersDbFile, newTalker);
+
+  res.status(201).json(newTalker);
 });
 
 app.all('*', (req, res) => {
