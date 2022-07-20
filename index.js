@@ -68,7 +68,8 @@ app.post('/talker',
       rate,
     },
   };
-  await writeContentFile(talkersDbFile, newTalker);
+  talkers.push(newTalker);
+  await writeContentFile(talkersDbFile, talkers);
 
   res.status(201).json(newTalker);
 });
@@ -86,9 +87,19 @@ const { name, age, talk: { watchedAt, rate } } = req.body;
 const talkers = await readContentFile(talkersDbFile);
 const index = talkers.findIndex((talker) => Number(talker.id) === Number(id));
 talkers[index] = { name, age, id: Number(id), talk: { watchedAt, rate } };
-await writeContentFile(talkersDbFile, talkers[index]);
+await writeContentFile(talkersDbFile, talkers);
 
 res.status(HTTP_OK_STATUS).json(talkers[index]);
+});
+
+app.delete('/talker/:id', tokenValidation, async (req, res) => {
+  const { id } = req.params;
+  const talkers = await readContentFile(talkersDbFile);
+  const index = talkers.findIndex((talker) => Number(talker.id) === Number(id));
+  talkers.splice(index, 1);
+  await writeContentFile(talkersDbFile, talkers);
+
+  res.status(204).send();
 });
 
 app.all('*', (req, res) => {
