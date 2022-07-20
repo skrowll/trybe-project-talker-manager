@@ -68,10 +68,27 @@ app.post('/talker',
       rate,
     },
   };
-  // talkers.push(newTalker);
   await writeContentFile(talkersDbFile, newTalker);
 
   res.status(201).json(newTalker);
+});
+
+app.put('/talker/:id',
+tokenValidation,
+nameValidation,
+ageValidation,
+talkValidation,
+watchedAtValidation,
+rateValidation,
+async (req, res) => {
+const { id } = req.params;
+const { name, age, talk: { watchedAt, rate } } = req.body;
+const talkers = await readContentFile(talkersDbFile);
+const index = talkers.findIndex((talker) => Number(talker.id) === Number(id));
+talkers[index] = { name, age, id: Number(id), talk: { watchedAt, rate } };
+await writeContentFile(talkersDbFile, talkers[index]);
+
+res.status(HTTP_OK_STATUS).json(talkers[index]);
 });
 
 app.all('*', (req, res) => {
