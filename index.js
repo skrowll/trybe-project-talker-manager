@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { readContentFile } = require('./helpers/readWriteFile');
+const { generateToken } = require('./helpers/tokenGenerator');
+const { loginValidation } = require('./middlewares/validations');
 
 const app = express();
 app.use(bodyParser.json());
@@ -34,7 +36,14 @@ app.get('/talker/:id', async (req, res) => {
   res.status(HTTP_OK_STATUS).send(talker);
 });
 
-app.all('*', (req, res) => res.status(404).json({ message: `Rota '${req.path}' não existe!` }));
+app.post('/login', loginValidation, (_req, res) => {
+  const token = generateToken(16);
+  res.status(HTTP_OK_STATUS).json({ token });
+});
+
+app.all('*', (req, res) => {
+  res.status(HTTP_NOTFOUND_STATUS).json({ message: `Rota '${req.path}' não existe!` });
+});
 
 app.listen(PORT, () => {
   console.log('Online');
