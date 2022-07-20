@@ -34,6 +34,15 @@ app.get('/talker', async (_req, res) => {
   res.status(HTTP_OK_STATUS).send(talkers);
 });
 
+app.get('/talker/search', tokenValidation, async (req, res) => {
+  const { q } = req.query;
+  const talkers = await readContentFile(talkersDbFile);
+  const filteredTalkers = talkers
+    .filter((element) => element.name.toLowerCase().includes(q.toLowerCase()));
+
+  res.status(HTTP_OK_STATUS).json(filteredTalkers);
+});
+
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
   const talkers = await readContentFile(talkersDbFile);
@@ -102,9 +111,16 @@ app.delete('/talker/:id', tokenValidation, async (req, res) => {
   res.status(204).send();
 });
 
-app.all('*', (req, res) => {
-  res.status(HTTP_NOTFOUND_STATUS).json({ message: `Rota '${req.path}' não existe!` });
+app.get('/talker/search', tokenValidation, async (request, response) => {
+  const { q } = request.query;
+  const talkers = await readContentFile(talkersDbFile);
+  const findQuery = talkers.filter((talker) => talker.name.toLowerCase().includes(q.toLowerCase()));
+  response.status(HTTP_OK_STATUS).json(findQuery);
 });
+
+// app.all('*', (req, res) => {
+//   res.status(HTTP_NOTFOUND_STATUS).json({ message: `Rota '${req.path}' não existe!` });
+// });
 
 app.listen(PORT, () => {
   console.log('Online');
